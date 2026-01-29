@@ -4,15 +4,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +42,7 @@ fun ExpensesScreen() {
                         )
                 ) {
                     Header(total = 100.0)
+                    AllExpensesHeader()
                 }
             }
             items(emptyList<String>()) {
@@ -49,12 +52,41 @@ fun ExpensesScreen() {
 }
 
 @Composable
+fun AllExpensesHeader() {
+    Row(
+        modifier = Modifier.padding(vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+        ) {
+        Text(
+            modifier = Modifier.weight(1f),
+            text = "All Expenses",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+        Button(
+            shape = RoundedCornerShape(50),
+            onClick = {
+
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.LightGray,
+            )
+        ) {
+            Text(text = "view all")
+        }
+    }
+}
+
+@Composable
 fun Header(total: Double) {
     Card(
         shape = RoundedCornerShape(30),
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.background),
-        elevation = CardDefaults.cardElevation(5.dp)
+        modifier = Modifier,
+        elevation = CardDefaults.cardElevation(5.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Black
+        )
     ) {
         Box(
             modifier = Modifier

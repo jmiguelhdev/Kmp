@@ -5,10 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.kmp.ui.Expenses.ExpensesScreen
 
 @Composable
 @Preview
@@ -20,8 +20,7 @@ fun App() {
                     .safeContentPadding()
                     .fillMaxWidth()
             ) {
-                Text("Bienvenidos")
-                Text("Curso kmp")
+                ExpensesScreen()
             }
         }
     }
