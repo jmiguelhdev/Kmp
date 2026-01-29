@@ -1,4 +1,4 @@
-package com.example.kmp.ui.Expenses
+package com.example.kmp.ui.expenses
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
