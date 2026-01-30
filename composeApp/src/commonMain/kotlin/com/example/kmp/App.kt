@@ -1,30 +1,39 @@
 package com.example.kmp
 
 import AppTheme
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.kmp.data.ExpenseManager
+import com.example.kmp.data.ExpenseRepoImpl
 import com.example.kmp.ui.expenses.ExpensesScreen
+import com.example.kmp.ui.expenses.ExpensesViewModel
 
 @Composable
-@Preview
 fun App() {
+
+    val viewModelProvider = viewModelFactory {
+        initializer {
+            ExpensesViewModel(ExpenseRepoImpl(ExpenseManager))
+        }
+    }
+    val viewModel = viewModel<ExpensesViewModel>(factory = viewModelProvider)
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     AppTheme {
         Surface {
-            Column(
-                modifier = Modifier
-                    .safeContentPadding()
-                    .fillMaxWidth()
-            ) {
-                ExpensesScreen()
-            }
+
+                ExpensesScreen(
+                    uiState = uiState,
+                    onExpenseClick = {}
+                )
+
         }
     }
 }
-
-
-

@@ -31,12 +31,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kmp.data.ExpenseManager
 import com.example.kmp.model.Expense
-import com.example.kmp.model.ExpenseCategory
 
-@Preview
+
 @Composable
-fun ExpensesScreen() {
+fun ExpensesScreen(
+    uiState: ExpensesUiState,
+    onExpenseClick: (expense: Expense) -> Unit
+) {
     LazyColumn(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 16.dp),
@@ -53,27 +56,24 @@ fun ExpensesScreen() {
                 AllExpensesHeader()
             }
         }
-        items(emptyList<String>()) {
-            ExpensesItem(expense) {
-
-            }
+        items(uiState.expenses) { expense ->
+            ExpensesItem(expense, onExpenseClick)
         }
     }
 }
 
-val expense = Expense(
-    id = -1,
-    amount = 100.0,
-    category = ExpenseCategory.GROCERIES,
-    name = ExpenseCategory.GROCERIES.name,
-    description = ExpenseCategory.GROCERIES.name
-)
+
 
 @Preview
 @Composable
-fun ExpenseItemPreview() {
-    ExpensesItem(expense) {
-    }
+fun ExpenseScreenPreview() {
+    ExpensesScreen(
+        uiState = ExpensesUiState(
+            expenses = ExpenseManager.fakeExpenseList,
+            total = 100.0
+    ),
+        onExpenseClick = {}
+    )
 }
 
 @Composable
@@ -84,7 +84,7 @@ fun ExpensesItem(expense: Expense, onExpenseClick: (expense: Expense) -> Unit) {
             .padding(horizontal = 2.dp)
             .clickable { onExpenseClick(expense) },
         colors = CardDefaults.cardColors(
-            containerColor = Color.White,
+            containerColor = Color.Black, // Forzado a negro en ambos modos
         ),
         shape = RoundedCornerShape(30)
     ) {
@@ -100,7 +100,7 @@ fun ExpensesItem(expense: Expense, onExpenseClick: (expense: Expense) -> Unit) {
             ) {
                 Image(
                     imageVector = expense.icon,
-                    contentDescription = expense.name,
+                    contentDescription = expense.description,
                     modifier = Modifier.padding(10.dp),
                     colorFilter = ColorFilter.tint(Color.White),
                     contentScale = ContentScale.Crop
@@ -117,20 +117,20 @@ fun ExpensesItem(expense: Expense, onExpenseClick: (expense: Expense) -> Unit) {
                     text = expense.category.name,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 16.sp,
-                    color = Color.Black
+                    color = Color.White // Forzado a blanco para contraste con fondo negro
                 )
                 Text(
                     text = expense.description,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color.White // Forzado a blanco
                 )
             }
             Text(
                 text = "Total $${expense.amount}",
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
-                color = Color.Black
+                color = Color.White // Forzado a blanco
             )
         }
     }
@@ -147,7 +147,7 @@ fun AllExpensesHeader() {
             text = "All Expenses",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground // Responsivo al tema
         )
         Button(
             shape = RoundedCornerShape(50),
@@ -158,7 +158,7 @@ fun AllExpensesHeader() {
                 containerColor = Color.LightGray,
             )
         ) {
-            Text(text = "view all")
+            Text(text = "view all", color = Color.Black)
         }
     }
 }
@@ -170,7 +170,7 @@ fun Header(total: Double) {
         modifier = Modifier,
         elevation = CardDefaults.cardElevation(5.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.Black
+            containerColor = Color.Black // También podemos forzar el header a negro si se desea consistencia
         )
     ) {
         Box(
@@ -194,4 +194,3 @@ fun Header(total: Double) {
         }
     }
 }
-

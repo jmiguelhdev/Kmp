@@ -15,7 +15,6 @@ data class Expense(
     val id: Long = -1,
     val amount: Double,
     val category: ExpenseCategory,
-    val name: String,
     val description: String
 ) {
     val icon = category.icon
