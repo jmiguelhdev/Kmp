@@ -1,5 +1,9 @@
 package com.example.kmp.ui.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +34,19 @@ fun AppNavHost() {
     NavHost(
         navController = navHostController,
         startDestination = ScreenRoutes.ExpensesList,
+         // TRANSICIONES GLOBALES
+        enterTransition = {
+            slideInHorizontally(initialOffsetX = { it }) + fadeIn()
+        },
+        exitTransition = {
+            slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+        },
+        popEnterTransition = {
+            slideInHorizontally(initialOffsetX = { -it }) + fadeIn()
+        },
+        popExitTransition = {
+            slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+        }
     ) {
         composable<ScreenRoutes.ExpensesList>{
             // EL VIEWMODEL SE INICIALIZA AQUÍ

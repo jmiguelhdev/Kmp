@@ -84,7 +84,7 @@ fun ExpensesItem(expense: Expense, onExpenseClick: (expense: Expense) -> Unit) {
             .padding(horizontal = 2.dp)
             .clickable { onExpenseClick(expense) },
         colors = CardDefaults.cardColors(
-            containerColor = Color.Black, // Forzado a negro en ambos modos
+            containerColor = MaterialTheme.colorScheme.primaryContainer// Forzado a negro en ambos modos
         ),
         shape = RoundedCornerShape(30)
     ) {
