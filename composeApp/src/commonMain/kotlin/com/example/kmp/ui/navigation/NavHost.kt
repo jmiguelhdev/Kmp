@@ -80,8 +80,22 @@ fun AppNavHost() {
     }
     // Escuchamos los eventos de navegación globales
     LaunchedEffect(Unit) {
-        sharedNavigator.navigationEvents.collect { screen ->
-            navHostController.navigate(screen)
+        sharedNavigator.navigationEvents.collect { action ->
+            when (action) {
+                is NavigationAction.NavigateTo -> {
+                    navHostController.navigate(action.screen) {
+                        // Si queremos limpiar la pila hasta una pantalla
+                        action.popUpTo?.let { popScreen ->
+                            popUpTo(popScreen) { inclusive = action.inclusive }
+                        }
+                        launchSingleTop = action.launchSingleTop
+                    }
+                }
+                is NavigationAction.NavigateBack -> {
+                    navHostController.popBackStack()
+                }
+            }
         }
     }
+
 }

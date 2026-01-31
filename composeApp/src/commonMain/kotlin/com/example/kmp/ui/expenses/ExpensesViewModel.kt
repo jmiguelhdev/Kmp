@@ -70,12 +70,5 @@ class ExpensesViewModel(
        return repository.getAllExpenses().first { it.id == id }
     }
 
-    fun onExpenseSelected(expenseId: Long) {
-        // Lógica de negocio si es necesaria...
-
-        // Navegación segura
-        //navigator.navigateTo(ScreenRoutes.ExpenseDetail(id = expenseId))
-    }
-
 }
 
