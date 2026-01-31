@@ -13,27 +13,13 @@ import com.example.kmp.data.ExpenseManager
 import com.example.kmp.data.ExpenseRepoImpl
 import com.example.kmp.ui.expenses.ExpensesScreen
 import com.example.kmp.ui.expenses.ExpensesViewModel
+import com.example.kmp.ui.navigation.AppNavHost
 
 @Composable
 fun App() {
-
-    val viewModelProvider = viewModelFactory {
-        initializer {
-            ExpensesViewModel(ExpenseRepoImpl(ExpenseManager))
-        }
-    }
-    val viewModel = viewModel<ExpensesViewModel>(factory = viewModelProvider)
-
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     AppTheme {
         Surface {
-
-                ExpensesScreen(
-                    uiState = uiState,
-                    onExpenseClick = {}
-                )
-
+            AppNavHost()
         }
     }
 }

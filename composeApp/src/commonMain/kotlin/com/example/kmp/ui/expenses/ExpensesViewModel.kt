@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kmp.domain.ExpenseRepository
 import com.example.kmp.model.Expense
+import com.example.kmp.ui.navigation.AppNavigator
+import com.example.kmp.ui.navigation.ScreenRoutes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +18,8 @@ data class ExpensesUiState(
 )
 
 class ExpensesViewModel(
-    private val repository: ExpenseRepository
+    private val repository: ExpenseRepository,
+    private val navigator: AppNavigator
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ExpensesUiState())
     val uiState: StateFlow<ExpensesUiState> = _uiState.stateIn(
@@ -67,6 +70,12 @@ class ExpensesViewModel(
        return repository.getAllExpenses().first { it.id == id }
     }
 
+    fun onExpenseSelected(expenseId: Long) {
+        // Lógica de negocio si es necesaria...
+
+        // Navegación segura
+        //navigator.navigateTo(ScreenRoutes.ExpenseDetail(id = expenseId))
+    }
 
 }
 
