@@ -3,7 +3,6 @@ package com.example.kmp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.toRoute
 import com.example.kmp.data.TitleTopBarType
 import com.example.kmp.ui.navigation.ScreenRoutes
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +26,7 @@ class AppViewModel : ViewModel() {
             }
             // Verificamos si la ruta es de tipo ExpenseDetails
             route is ScreenRoutes.ExpenseDetails -> {
-                if (route.id == 0L) TitleTopBarType.ADD.value else TitleTopBarType.DETAILS.value
+                if (route.id == 0L) TitleTopBarType.ADD.value else TitleTopBarType.EDIT.value
             }
             else -> TitleTopBarType.BASHBOARD.value
         }
