@@ -80,16 +80,6 @@ fun DetailsScreen(
                 singleLine = true
             )
 
-            // Campo de Descripción
-            OutlinedTextField(
-                value = uiState.description,
-                onValueChange = { viewModel.onDescriptionChange(it) },
-                label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-
             // Selector de Categoría (Visualmente como un botón de selección)
             OutlinedTextField(
                 value = uiState.category.name,
@@ -109,6 +99,15 @@ fun DetailsScreen(
                 leadingIcon = {
                     Icon(uiState.category.icon, contentDescription = null)
                 }
+            )
+
+            // Campo de Descripción
+            OutlinedTextField(
+                value = uiState.description,
+                onValueChange = { viewModel.onDescriptionChange(it) },
+                label = { Text("Description") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.weight(1f))
