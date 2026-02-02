@@ -89,6 +89,7 @@ fun DetailsScreen(
                 singleLine = true
             )
 
+
             // Selector de Categoría (Visualmente como un botón de selección)
             OutlinedTextField(
                 value = uiState.category.name,
