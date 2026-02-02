@@ -6,7 +6,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,6 +20,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.kmp.data.ExpenseManager
 import com.example.kmp.data.ExpenseRepoImpl
+import com.example.kmp.ui.details.DetailsScreen
+import com.example.kmp.ui.details.DetailsViewModel
 import com.example.kmp.ui.expenses.ExpensesScreen
 import com.example.kmp.ui.expenses.ExpensesViewModel
 
@@ -68,15 +69,30 @@ fun AppNavHost(
             ExpensesScreen(
                 uiState = uiState,
                 onExpenseClick = {
-                    navController.navigate(ScreenRoutes.ExpenseDetails(it.id))
+                    viewModel.onExpenseSelected(it.id)
                 }
             )
         }
         composable<ScreenRoutes.ExpenseDetails> { backStackEntry ->
             // Recuperamos el ID que viene en la ruta
             val route: ScreenRoutes.ExpenseDetails = backStackEntry.toRoute()
-            // Aquí inicializarías el DetailViewModel de la misma forma
-            Text("Detalle del gasto con ID: ${route.id}")
+            val detailsViewModel = viewModel<DetailsViewModel>(
+                factory = viewModelFactory {
+                    initializer {
+                        DetailsViewModel(
+                            expenseId = route.id,
+                            repository = ExpenseRepoImpl(ExpenseManager),
+                            navigator = sharedNavigator // El mismo que usa el AppNavHost
+                        )
+                    }
+                }
+            )
+
+            DetailsScreen(
+                id = route.id,
+                viewModel = detailsViewModel
+            )
+
         }
     }
     // Escuchamos los eventos de navegación globales

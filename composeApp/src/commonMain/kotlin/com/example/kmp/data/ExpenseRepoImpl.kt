@@ -3,9 +3,12 @@ package com.example.kmp.data
 import com.example.kmp.domain.ExpenseRepository
 import com.example.kmp.model.Expense
 import com.example.kmp.model.ExpenseCategory
+import kotlinx.coroutines.flow.Flow
 
 class ExpenseRepoImpl(private val expenseManager: ExpenseManager): ExpenseRepository {
-    override fun getAllExpenses(): List<Expense> = expenseManager.getAllExpenses()
+
+
+    override fun getAllExpenses(): Flow<List<Expense>> = expenseManager.expenses
 
 
     override fun addExpense(expense: Expense) {
@@ -23,4 +26,8 @@ class ExpenseRepoImpl(private val expenseManager: ExpenseManager): ExpenseReposi
     override fun getCategories(): List<ExpenseCategory> {
         return expenseManager.getCategories()
     }
+    override fun getExpenseById(id: Long): Expense? {
+        return expenseManager.getExpenseById(id)
+    }
+
 }

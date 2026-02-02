@@ -2,11 +2,15 @@ package com.example.kmp
 
 import AppTheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuOpen
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -21,10 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.example.kmp.ui.navigation.AppNavHost
 import com.example.kmp.ui.navigation.AppNavigator
+import com.example.kmp.ui.navigation.ScreenRoutes
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -39,11 +46,19 @@ fun App() {
     val appViewModel = viewModel<AppViewModel> { AppViewModel() }
     val appUiState by appViewModel.uiState.collectAsStateWithLifecycle()
 
-// Usamos un LaunchedEffect para notificar al ViewModel cada vez que cambia la ruta
+    // Usamos un LaunchedEffect para notificar al ViewModel cada vez que cambia la ruta
     LaunchedEffect(navBackStackEntry) {
-        appViewModel.updateRoute(navBackStackEntry?.destination)
-    }
+        val destination = navBackStackEntry?.destination
 
+        // Intentamos obtener la ruta tipada solo si el destino coincide
+        val route = try {
+            if (destination?.hasRoute<ScreenRoutes.ExpenseDetails>() == true) {
+                navBackStackEntry?.toRoute<ScreenRoutes.ExpenseDetails>()
+            } else null
+        } catch (e: Exception) { null }
+
+        appViewModel.updateRoute(destination, route)
+    }
     AppTheme {
         Scaffold(
             modifier = Modifier
@@ -86,6 +101,21 @@ fun App() {
                     }
                 )
             },
+            floatingActionButton = {
+                if (!appUiState.isDetailScreen) {
+                    FloatingActionButton(
+                        onClick = {
+                        sharedNavigator.navigateTo(ScreenRoutes.ExpenseDetails(id = 0L))
+                    },
+                        shape = RoundedCornerShape(30),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Expense"
+                        )
+                    }
+                }
+            }
 
         ) { paddingValues ->
             AppNavHost(paddingValues, navController, sharedNavigator)

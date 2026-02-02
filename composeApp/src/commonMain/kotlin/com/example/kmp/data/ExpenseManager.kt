@@ -2,58 +2,41 @@ package com.example.kmp.data
 
 import com.example.kmp.model.Expense
 import com.example.kmp.model.ExpenseCategory
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 object ExpenseManager {
-    private var currentId = 1L
-    val fakeExpenseList = mutableListOf<Expense>(
-        Expense(
-            id = currentId++,
-            amount = 70.0,
-            category = ExpenseCategory.GROCERIES,
-            description = ExpenseCategory.GROCERIES.name
-        ),
-        Expense(
-            id = currentId++,
-            amount = 10.2,
-            category = ExpenseCategory.TRANSPORTATION,
-            description = ExpenseCategory.GROCERIES.name,
-        ),
-        Expense(
-            id = currentId++,
-            amount = 110.2,
-            category = ExpenseCategory.CAR,
-            description = ExpenseCategory.GROCERIES.name,
-        ),
-        Expense(
-            id = currentId++,
-            amount = 102.2,
-            category = ExpenseCategory.PARTY,
-            description = ExpenseCategory.GROCERIES.name,
-        ),
-        Expense(
-            id = currentId++,
-            amount = 102.2,
-            category = ExpenseCategory.UNKNOWN,
-            description = ExpenseCategory.GROCERIES.name,
-        )
+    private var currentId = 6L // Empezamos después de los fakes
+
+    // La clave de la reactividad: StateFlow
+    private val _expenses = MutableStateFlow(initialFakeExpenses())
+    val expenses = _expenses.asStateFlow()
+
+    fun initialFakeExpenses() = listOf(
+        Expense(1, 70.0, ExpenseCategory.GROCERIES, "Groceries"),
+        Expense(2, 10.2, ExpenseCategory.TRANSPORTATION, "Transport"),
+        Expense(3, 110.2, ExpenseCategory.CAR, "Car"),
+        Expense(4, 102.2, ExpenseCategory.PARTY, "Party"),
+        Expense(5, 102.2, ExpenseCategory.UNKNOWN, "Other")
     )
 
     fun addNewExpense(expense: Expense) {
-        fakeExpenseList.add(expense.copy(id = currentId++))
-    }
-    fun editExpense(expense: Expense) {
-        val index = fakeExpenseList.indexOfFirst { it.id == expense.id }
-        if (index != -1) {
-            fakeExpenseList[index] = fakeExpenseList[index].copy(
-                amount = expense.amount,
-                category = expense.category,
-                description = expense.description
-            )
+        _expenses.update { currentList ->
+            currentList + expense.copy(id = currentId++)
         }
     }
-    fun deleteExpense(expense: Expense):List<Expense> {
-        fakeExpenseList.removeAt(expense.id.toInt())
-        return fakeExpenseList.sortedByDescending { it.id }.reversed()
+
+    fun editExpense(expense: Expense) {
+        _expenses.update { currentList ->
+            currentList.map { if (it.id == expense.id) expense else it }
+        }
+    }
+
+    fun deleteExpense(id: Expense) {
+        _expenses.update { currentList ->
+            currentList.filter { it.id != id.id }
+        }
     }
 
     fun getCategories(): List<ExpenseCategory> =
@@ -67,6 +50,8 @@ object ExpenseManager {
             ExpenseCategory.HOUSE,
             ExpenseCategory.UNKNOWN
         )
-    fun getAllExpenses (): List<Expense> = fakeExpenseList.sortedByDescending { it.id }.reversed()
-
+   // fun getAllExpenses (): List<Expense> = initialFakeExpenses().sortedByDescending { it.id }.reversed()
+    fun getExpenseById(id: Long): Expense? {
+        return _expenses.value.find { it.id == id }
+    }
 }

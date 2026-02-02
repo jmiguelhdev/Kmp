@@ -3,6 +3,7 @@ package com.example.kmp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.toRoute
 import com.example.kmp.data.TitleTopBarType
 import com.example.kmp.ui.navigation.ScreenRoutes
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,19 +19,23 @@ class AppViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun updateRoute(destination: NavDestination?) {
+    // Cambiamos la firma para no depender de Bundle
+    fun updateRoute(destination: NavDestination?, route: ScreenRoutes?) {
         val title = when {
-            destination?.hasRoute<ScreenRoutes.ExpensesList>() == true -> TitleTopBarType.BASHBOARD.value
-            destination?.hasRoute<ScreenRoutes.AddExpense>() == true -> TitleTopBarType.ADD.value
-            destination?.hasRoute<ScreenRoutes.EditExpense>() == true -> TitleTopBarType.EDIT.value
-            destination?.hasRoute<ScreenRoutes.ExpenseDetails>() == true -> TitleTopBarType.DETAILS.value
+            destination?.hasRoute<ScreenRoutes.ExpensesList>() == true -> {
+                TitleTopBarType.BASHBOARD.value
+            }
+            // Verificamos si la ruta es de tipo ExpenseDetails
+            route is ScreenRoutes.ExpenseDetails -> {
+                if (route.id == 0L) TitleTopBarType.ADD.value else TitleTopBarType.DETAILS.value
+            }
             else -> TitleTopBarType.BASHBOARD.value
         }
 
         _uiState.update {
             it.copy(
                 title = title,
-                isDetailScreen = title != TitleTopBarType.BASHBOARD.value
+                isDetailScreen = destination?.hasRoute<ScreenRoutes.ExpensesList>() == false
             )
         }
     }

@@ -52,7 +52,7 @@ fun ExpensesScreen(
                         color = MaterialTheme.colorScheme.background
                     )
             ) {
-                Header(total = 100.0)
+                Header(total = uiState.formattedTotal)
                 AllExpensesHeader()
             }
         }
@@ -69,7 +69,7 @@ fun ExpensesScreen(
 fun ExpenseScreenPreview() {
     ExpensesScreen(
         uiState = ExpensesUiState(
-            expenses = ExpenseManager.fakeExpenseList,
+            expenses = ExpenseManager.initialFakeExpenses(),
             total = 100.0
     ),
         onExpenseClick = {}
@@ -164,7 +164,7 @@ fun AllExpensesHeader() {
 }
 
 @Composable
-fun Header(total: Double) {
+fun Header(total: String) {
     Card(
         shape = RoundedCornerShape(30),
         modifier = Modifier,
@@ -181,7 +181,7 @@ fun Header(total: Double) {
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
-                text = "$$total",
+                text = total,
                 fontSize = 30.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White
