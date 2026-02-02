@@ -20,6 +20,8 @@ private val LightColors = lightColorScheme(
     onPrimary = Color.White,
     background = BackgroundLight,
     onBackground = Color.Black,
+    primaryContainer = Color.Black,
+    onPrimaryContainer = Color.White,
     surface = Color.White, // Claro en modo claro
     onSurface = Color.Black // Texto oscuro sobre fondo claro
 )
@@ -30,6 +32,8 @@ private val DarkColors = darkColorScheme(
     onPrimary = Color.Black,
     background = BackgroundDark,
     onBackground = Color.White,
+    primaryContainer = Color.Black,
+    onPrimaryContainer = Color.White,
     surface = Color(0xFF1E1E1E), // Oscuro en modo oscuro
     onSurface = Color.White // Texto claro sobre fondo oscuro
 )
