@@ -11,19 +11,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.example.kmp.data.ExpenseManager
-import com.example.kmp.data.ExpenseRepoImpl
 import com.example.kmp.ui.details.DetailsScreen
 import com.example.kmp.ui.details.DetailsViewModel
 import com.example.kmp.ui.expenses.ExpensesScreen
 import com.example.kmp.ui.expenses.ExpensesViewModel
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun AppNavHost(
@@ -53,16 +50,8 @@ fun AppNavHost(
     ) {
         composable<ScreenRoutes.ExpensesList>{
             // EL VIEWMODEL SE INICIALIZA AQUÍ
-            val viewModel = viewModel<ExpensesViewModel>(
-                factory = viewModelFactory {
-                    initializer {
-                        ExpensesViewModel(
-                            repository = ExpenseRepoImpl(ExpenseManager()),
-                            navigator = sharedNavigator
-                        )
-                    }
-                }
-            )
+
+            val viewModel = koinViewModel<ExpensesViewModel>()
 
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -76,17 +65,12 @@ fun AppNavHost(
         composable<ScreenRoutes.ExpenseDetails> { backStackEntry ->
             // Recuperamos el ID que viene en la ruta
             val route: ScreenRoutes.ExpenseDetails = backStackEntry.toRoute()
-            val detailsViewModel = viewModel<DetailsViewModel>(
-                factory = viewModelFactory {
-                    initializer {
-                        DetailsViewModel(
-                            expenseId = route.id,
-                            repository = ExpenseRepoImpl(ExpenseManager()),
-                            navigator = sharedNavigator // El mismo que usa el AppNavHost
-                        )
-                    }
-                }
+
+
+            val detailsViewModel = koinViewModel<DetailsViewModel>(
+                parameters = { parametersOf(route.id) }
             )
+
 
             DetailsScreen(
                 id = route.id,

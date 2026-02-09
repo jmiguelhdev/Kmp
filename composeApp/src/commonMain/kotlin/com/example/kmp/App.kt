@@ -32,18 +32,21 @@ import androidx.navigation.toRoute
 import com.example.kmp.ui.navigation.AppNavHost
 import com.example.kmp.ui.navigation.AppNavigator
 import com.example.kmp.ui.navigation.ScreenRoutes
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun App() {
     // 1. Instanciamos el NavController aquí arriba para poder observarlo
     val navController = rememberNavController()
-    val sharedNavigator = remember { AppNavigator() }
+    val sharedNavigator = koinInject<AppNavigator>()
 
     // 2. Obtenemos la entrada actual de la pila de navegación
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-    val appViewModel = viewModel<AppViewModel> { AppViewModel() }
+    //val appViewModel = viewModel<AppViewModel> { AppViewModel() }
+    val appViewModel = koinViewModel<AppViewModel>()
     val appUiState by appViewModel.uiState.collectAsStateWithLifecycle()
 
     // Usamos un LaunchedEffect para notificar al ViewModel cada vez que cambia la ruta
