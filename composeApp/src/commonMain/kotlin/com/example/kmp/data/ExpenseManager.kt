@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-object ExpenseManager {
+class ExpenseManager {
     private var currentId = 6L // Empezamos después de los fakes
 
     // La clave de la reactividad: StateFlow
@@ -54,4 +54,6 @@ object ExpenseManager {
     fun getExpenseById(id: Long): Expense? {
         return _expenses.value.find { it.id == id }
     }
+
+
 }

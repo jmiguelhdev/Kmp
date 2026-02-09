@@ -57,7 +57,7 @@ fun AppNavHost(
                 factory = viewModelFactory {
                     initializer {
                         ExpensesViewModel(
-                            repository = ExpenseRepoImpl(ExpenseManager),
+                            repository = ExpenseRepoImpl(ExpenseManager()),
                             navigator = sharedNavigator
                         )
                     }
@@ -81,7 +81,7 @@ fun AppNavHost(
                     initializer {
                         DetailsViewModel(
                             expenseId = route.id,
-                            repository = ExpenseRepoImpl(ExpenseManager),
+                            repository = ExpenseRepoImpl(ExpenseManager()),
                             navigator = sharedNavigator // El mismo que usa el AppNavHost
                         )
                     }
