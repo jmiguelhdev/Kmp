@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -30,6 +31,8 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.koin.android)
+            implementation(libs.sqldelight.android.driver)
+
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -47,8 +50,13 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
+            //sqldelight
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.coroutines)
+
         }
         iosMain.dependencies {
+            implementation(libs.sqldelight.native.driver)
 
         }
         commonTest.dependencies {
@@ -89,5 +97,16 @@ android {
 
 dependencies {
     debugImplementation(libs.compose.uiTooling)
+}
+
+sqldelight {
+    databases {
+        create("ExpenseDatabase") {
+            // Este es el paquete donde se generará el código de la DB
+            packageName.set("com.example.kmp.database")
+            // Directorio donde buscará los archivos .sq (por defecto src/commonMain/sqldelight)
+            srcDirs.setFrom(listOf("src/commonMain/sqldelight"))
+        }
+    }
 }
 

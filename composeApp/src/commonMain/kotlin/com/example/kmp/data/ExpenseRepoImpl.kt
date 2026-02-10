@@ -1,33 +1,66 @@
 package com.example.kmp.data
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import com.example.kmp.database.ExpenseDatabase
 import com.example.kmp.domain.ExpenseRepository
 import com.example.kmp.model.Expense
 import com.example.kmp.model.ExpenseCategory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-class ExpenseRepoImpl(private val expenseManager: ExpenseManager): ExpenseRepository {
+class ExpenseRepoImpl(
+    private val expenseManager: ExpenseManager,
+    database: ExpenseDatabase
+) : ExpenseRepository {
+
+    private val queries = database.expensesDbQueries
 
 
-    override fun getAllExpenses(): Flow<List<Expense>> = expenseManager.expenses
+    override fun getAllExpenses(): Flow<List<Expense>> =
+        queries.selectAllExpenses()
+            .asFlow()
+            .mapToList(Dispatchers.IO)
+            .map { expenseEntities ->
+                expenseEntities.map { it.toDomain() }
+            }
 
 
     override fun addExpense(expense: Expense) {
-        expenseManager.addNewExpense(expense)
+        queries.transaction {
+            queries.insertExpense(
+                amount = expense.amount,
+                categoryName = expense.category.name,
+                description = expense.description
+            )
+        }
     }
 
     override fun editExpense(expense: Expense) {
-        expenseManager.editExpense(expense)
+        queries.transaction {
+            queries.updateExpense(
+                amount = expense.amount,
+                categoryName = expense.category.name,
+                description = expense.description,
+                id = expense.id
+            )
+        }
     }
 
     override fun deleteExpense(expense: Expense) {
-        expenseManager.deleteExpense(expense)
+        queries.deleteExpense(expense.id)
     }
 
     override fun getCategories(): List<ExpenseCategory> {
         return expenseManager.getCategories()
     }
+
     override fun getExpenseById(id: Long): Expense? {
-        return expenseManager.getExpenseById(id)
+        return queries.selectExpenseById(id)
+            .executeAsOneOrNull()
+            ?.toDomain()
     }
 
 }

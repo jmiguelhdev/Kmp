@@ -1,0 +1,35 @@
+CREATE TABLE ExpenseEntity (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    amount REAL NOT NULL,
+    categoryName TEXT NOT NULL,
+    description TEXT NOT NULL
+);
+-- Datos Iniciales (Seed)
+-- Nota: Omitimos el ID para que AUTOINCREMENT funcione correctamente
+
+INSERT INTO ExpenseEntity(amount, categoryName, description)
+VALUES
+(70.0, 'GROCERIES', 'Groceries'),
+(10.2, 'TRANSPORTATION', 'Transport'),
+(110.2, 'CAR', 'Car'),
+(102.2, 'PARTY', 'Party'),
+(102.2, 'UNKNOWN', 'Other');
+-- Consultas para el Repositorio
+selectAllExpenses:
+SELECT * FROM ExpenseEntity;
+
+selectExpenseById:
+SELECT * FROM ExpenseEntity WHERE id = ?;
+
+insertExpense:
+INSERT INTO ExpenseEntity(amount, categoryName, description)
+VALUES (?, ?, ?);
+
+updateExpense:
+UPDATE ExpenseEntity
+SET amount = ?, categoryName = ?, description = ?
+WHERE id = ?;
+
+deleteExpense:
+DELETE FROM ExpenseEntity WHERE id = ?;
+

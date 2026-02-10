@@ -19,7 +19,8 @@ data class ExpensesUiState(
 )
 
 class ExpensesViewModel(
-    repository: ExpenseRepository, private val navigator: AppNavigator
+    repository: ExpenseRepository,
+    private val navigator: AppNavigator
 ) : ViewModel() {
 
     val uiState: StateFlow<ExpensesUiState> = repository.getAllExpenses()
