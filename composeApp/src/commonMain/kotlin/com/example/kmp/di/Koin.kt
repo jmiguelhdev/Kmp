@@ -4,6 +4,7 @@ import com.example.kmp.AppViewModel
 import com.example.kmp.data.DatabaseDriverFactory
 import com.example.kmp.data.ExpenseManager
 import com.example.kmp.data.ExpenseRepoImpl
+import com.example.kmp.data.createHttpClient
 import com.example.kmp.database.ExpenseDatabase
 import com.example.kmp.domain.ExpenseRepository
 import com.example.kmp.ui.details.DetailsViewModel
@@ -20,11 +21,16 @@ import kotlin.collections.toTypedArray
 // Capa DATA: Singletons para Repositorios y Fuentes de Datos
 val dataModule = module {
     single { ExpenseManager() }
+    single { createHttpClient() }
     single {
         val driver = get<DatabaseDriverFactory>().createDriver()
         ExpenseDatabase(driver)
     }
-    single<ExpenseRepository> { ExpenseRepoImpl(get(), get()) }
+    single<ExpenseRepository> { ExpenseRepoImpl(
+        get(),
+        get(),
+        get())
+    }
 }
 
 // Capa DOMAIN: Factory para UseCases (si tuvieras)

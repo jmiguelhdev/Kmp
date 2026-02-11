@@ -6,6 +6,7 @@ import com.example.kmp.database.ExpenseDatabase
 import com.example.kmp.domain.ExpenseRepository
 import com.example.kmp.model.Expense
 import com.example.kmp.model.ExpenseCategory
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +14,8 @@ import kotlinx.coroutines.flow.map
 
 class ExpenseRepoImpl(
     private val expenseManager: ExpenseManager,
-    database: ExpenseDatabase
+    database: ExpenseDatabase,
+    private val httpClient: HttpClient
 ) : ExpenseRepository {
 
     private val queries = database.expensesDbQueries

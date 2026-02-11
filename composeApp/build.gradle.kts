@@ -33,7 +33,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.koin.android)
             implementation(libs.sqldelight.android.driver)
-
+            implementation(libs.ktor.client.android)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -54,11 +54,16 @@ kotlin {
             //sqldelight
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
+            //ktor
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.logging)
 
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)
-
+            implementation(libs.ktor.client.ios)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
