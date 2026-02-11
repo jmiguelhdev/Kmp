@@ -82,7 +82,7 @@ class ExpenseRepoImpl(
             }
 
             if (response.status == HttpStatusCode.OK) {
-                Napier.log("addExpense: API respondió OK. Guardando en DB local.")
+                Napier.log("addExpense: API respondió OK. Guardando en DB local.: ${expense.id}")
 
                 // Actualizar localmente si es necesario
                 syncExpenses()
