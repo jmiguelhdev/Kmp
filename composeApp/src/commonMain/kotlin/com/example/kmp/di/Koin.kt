@@ -4,9 +4,9 @@ import com.example.kmp.AppViewModel
 import com.example.kmp.data.DatabaseDriverFactory
 import com.example.kmp.data.ExpenseManager
 import com.example.kmp.data.ExpenseRepoImpl
-import com.example.kmp.data.createHttpClient
 import com.example.kmp.database.ExpenseDatabase
 import com.example.kmp.domain.ExpenseRepository
+import com.example.kmp.domain.usecase.GetExpensesUseCase
 import com.example.kmp.ui.details.DetailsViewModel
 import com.example.kmp.ui.expenses.ExpensesViewModel
 import com.example.kmp.ui.navigation.AppNavigator
@@ -21,21 +21,22 @@ import kotlin.collections.toTypedArray
 // Capa DATA: Singletons para Repositorios y Fuentes de Datos
 val dataModule = module {
     single { ExpenseManager() }
-    single { createHttpClient() }
     single {
         val driver = get<DatabaseDriverFactory>().createDriver()
         ExpenseDatabase(driver)
     }
-    single<ExpenseRepository> { ExpenseRepoImpl(
-        get(),
-        get(),
-        get())
+    single<ExpenseRepository> {
+        ExpenseRepoImpl(
+            get(),
+            get(),
+            get()
+        )
     }
 }
 
 // Capa DOMAIN: Factory para UseCases (si tuvieras)
 val domainModule = module {
-    // Ejemplo: factory { GetExpensesUseCase(get()) }
+    factory { GetExpensesUseCase(get()) }
 }
 
 // Capa UI: ViewModels y Navegación
@@ -56,6 +57,7 @@ val uiModule = module {
 
 // 1. Declaramos que cada plataforma DEBE proveer su propio modulo
 expect val platformModule: Module
+
 // Función para inicializar Koin (Common para todas las plataformas)
 // Necesitamos una forma de decirle a Koin qué módulos usar
 // Agregamos este parámetro a initKoin
@@ -65,5 +67,6 @@ fun initKoin(platformModules: List<Module> = emptyList(), config: KoinAppDeclara
         modules(dataModule, uiModule, *platformModules.toTypedArray())
     }
 }
+
 // Helper específico para iOS (opcional, pero recomendado para Swift)
 fun initKoinIos() = initKoin(listOf(platformModule))

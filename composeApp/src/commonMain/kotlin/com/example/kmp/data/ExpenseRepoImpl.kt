@@ -12,6 +12,8 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+
+private const val BASE_URL = "http://192.168.1.18:8080"
 class ExpenseRepoImpl(
     private val expenseManager: ExpenseManager,
     database: ExpenseDatabase,
@@ -21,7 +23,7 @@ class ExpenseRepoImpl(
     private val queries = database.expensesDbQueries
 
 
-    override fun getAllExpenses(): Flow<List<Expense>> =
+    override suspend fun getAllExpenses(): Flow<List<Expense>> =
         queries.selectAllExpenses()
             .asFlow()
             .mapToList(Dispatchers.IO)
@@ -30,7 +32,7 @@ class ExpenseRepoImpl(
             }
 
 
-    override fun addExpense(expense: Expense) {
+    override suspend fun addExpense(expense: Expense) {
         queries.transaction {
             queries.insertExpense(
                 amount = expense.amount,
@@ -40,7 +42,7 @@ class ExpenseRepoImpl(
         }
     }
 
-    override fun editExpense(expense: Expense) {
+    override suspend fun editExpense(expense: Expense) {
         queries.transaction {
             queries.updateExpense(
                 amount = expense.amount,
@@ -51,7 +53,7 @@ class ExpenseRepoImpl(
         }
     }
 
-    override fun deleteExpense(expense: Expense) {
+    override suspend fun deleteExpense(expense: Expense) {
         queries.deleteExpense(expense.id)
     }
 

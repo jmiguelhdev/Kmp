@@ -5,10 +5,10 @@ import com.example.kmp.model.ExpenseCategory
 import kotlinx.coroutines.flow.Flow
 
 interface ExpenseRepository {
-    fun getAllExpenses(): Flow<List<Expense>>
-    fun addExpense(expense: Expense)
-    fun editExpense(expense: Expense)
-    fun deleteExpense(expense: Expense)
+    suspend fun getAllExpenses(): Flow<List<Expense>>
+    suspend fun addExpense(expense: Expense)
+    suspend fun editExpense(expense: Expense)
+    suspend fun deleteExpense(expense: Expense)
     fun getCategories(): List<ExpenseCategory>
     fun getExpenseById(id: Long): Expense?
 }

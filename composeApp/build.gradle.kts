@@ -47,6 +47,8 @@ kotlin {
             implementation(libs.androidx.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.material.icons.extended)
+            implementation(libs.kotlinx.coroutines.core)
+
             // Koin
             implementation(libs.koin.core)
             implementation(libs.koin.compose)

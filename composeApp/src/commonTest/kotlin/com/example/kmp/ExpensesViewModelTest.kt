@@ -18,7 +18,11 @@ class ExpensesViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: ExpensesViewModel
-    private val repo = ExpenseRepoImpl(ExpenseManager())
+    private val repo = ExpenseRepoImpl(
+        ExpenseManager(),
+        database = TODO(),
+        httpClient = TODO()
+    )
     private val navigator = AppNavigator()
 
     @BeforeTest
