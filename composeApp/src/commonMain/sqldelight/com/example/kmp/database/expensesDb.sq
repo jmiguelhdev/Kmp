@@ -22,8 +22,8 @@ selectExpenseById:
 SELECT * FROM ExpenseEntity WHERE id = ?;
 
 insertExpense:
-INSERT INTO ExpenseEntity(amount, categoryName, description)
-VALUES (?, ?, ?);
+INSERT OR REPLACE INTO ExpenseEntity(id,amount, categoryName, description)
+VALUES (?,?, ?, ?);
 
 updateExpense:
 UPDATE ExpenseEntity

@@ -6,10 +6,13 @@ import com.example.kmp.data.ExpenseManager
 import com.example.kmp.data.ExpenseRepoImpl
 import com.example.kmp.database.ExpenseDatabase
 import com.example.kmp.domain.ExpenseRepository
-import com.example.kmp.domain.usecase.GetExpensesUseCase
 import com.example.kmp.ui.details.DetailsViewModel
 import com.example.kmp.ui.expenses.ExpensesViewModel
 import com.example.kmp.ui.navigation.AppNavigator
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
@@ -20,6 +23,18 @@ import kotlin.collections.toTypedArray
 
 // Capa DATA: Singletons para Repositorios y Fuentes de Datos
 val dataModule = module {
+    // 1. Proveer HttpClient configurado
+    single {
+        HttpClient {
+            install(ContentNegotiation) {
+                json(Json {
+                    ignoreUnknownKeys = true
+                    prettyPrint = true
+                    isLenient = true
+                })
+            }
+        }
+    }
     single { ExpenseManager() }
     single {
         val driver = get<DatabaseDriverFactory>().createDriver()
@@ -36,7 +51,7 @@ val dataModule = module {
 
 // Capa DOMAIN: Factory para UseCases (si tuvieras)
 val domainModule = module {
-    factory { GetExpensesUseCase(get()) }
+
 }
 
 // Capa UI: ViewModels y Navegación

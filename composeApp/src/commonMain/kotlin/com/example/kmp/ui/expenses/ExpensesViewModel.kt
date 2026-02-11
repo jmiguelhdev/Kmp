@@ -10,7 +10,7 @@ import com.example.kmp.utils.toFormattedCurrency
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -25,9 +25,7 @@ class ExpensesViewModel(
     private val repository: ExpenseRepository,
     private val navigator: AppNavigator
 ) : ViewModel() {
-
-
-    private val _uiState = MutableStateFlow(ExpensesUiState())
+    private val _uiState = MutableStateFlow(ExpensesUiState(isLoading = true))
     val uiState: StateFlow<ExpensesUiState> = _uiState.asStateFlow()
 
     init {
@@ -36,26 +34,30 @@ class ExpensesViewModel(
 
     private fun loadExpenses() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            // Sincronizar con API (Backend Ktor)
             try {
-                // Llamada suspendida al repositorio
-                val expenses = repository.getAllExpenses().first()
-                val totalAmount = expenses.sumOf { it.amount }
+                repository.syncExpenses()
+            } catch (e: Exception) {
+                // Manejar error de red opcionalmente
+            }
 
-                _uiState.update {
-                    it.copy(
+            // Recolectar el Flow de la DB/Repositorio
+            // Al ser suspend, lo llamamos dentro de la corrutina
+            repository.getAllExpenses().collectLatest { expenses ->
+                val totalAmount = expenses.sumOf { it.amount }
+                _uiState.update { currentState ->
+                    currentState.copy(
                         expenses = expenses,
                         total = totalAmount,
                         formattedTotal = totalAmount.toFormattedCurrency(),
                         isLoading = false
                     )
                 }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false) }
-                // Manejar error (ej. enviar a un StateFlow de errores)
             }
         }
     }
+
+
 
     fun onExpenseSelected(id: Long) {
         navigator.navigateTo(ScreenRoutes.ExpenseDetails(id))

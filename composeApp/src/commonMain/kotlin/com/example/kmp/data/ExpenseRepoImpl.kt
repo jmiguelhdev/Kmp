@@ -6,7 +6,20 @@ import com.example.kmp.database.ExpenseDatabase
 import com.example.kmp.domain.ExpenseRepository
 import com.example.kmp.model.Expense
 import com.example.kmp.model.ExpenseCategory
+import com.example.kmp.model.ExpenseNetworkResponse
+import com.example.kmp.ui.mappers.toNetworkRequest
+import com.example.kmp.utils.log
+import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.delete
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
@@ -23,38 +36,103 @@ class ExpenseRepoImpl(
     private val queries = database.expensesDbQueries
 
 
-    override suspend fun getAllExpenses(): Flow<List<Expense>> =
-        queries.selectAllExpenses()
+    override suspend fun getAllExpenses(): Flow<List<Expense>> {
+        // Retornamos el Flow de la base de datos (Single Source of Truth)
+        return queries.selectAllExpenses()
             .asFlow()
             .mapToList(Dispatchers.IO)
-            .map { expenseEntities ->
-                expenseEntities.map { it.toDomain() }
+            .map { entities -> entities.map { it.toDomain() } }
+    }
+
+
+    override suspend fun syncExpenses() {
+        Napier.log("syncExpenses: Iniciando...")
+        try {
+            // 1. Recibimos una lista de DTOs
+            val networkExpenses = httpClient.get("$BASE_URL/expenses")
+                .body<List<ExpenseNetworkResponse>>()
+
+            queries.transaction {
+                networkExpenses.forEach { dto ->
+                    queries.insertExpense(
+                        id = dto.id,
+                        amount = dto.amount,
+                        categoryName = dto.category,
+                        description = dto.description
+                    )
+                }
             }
+            Napier.log("syncExpenses: Éxito")
+        } catch (e: Exception) {
+            Napier.e("syncExpenses: Error", throwable = e)
+        }
+    }
+
+
 
 
     override suspend fun addExpense(expense: Expense) {
-        queries.transaction {
-            queries.insertExpense(
-                amount = expense.amount,
-                categoryName = expense.category.name,
-                description = expense.description
-            )
+        Napier.log("addExpense: Intentando agregar gasto: $expense")
+        try {
+            // Convertimos dominio a DTO antes de enviar
+            val request = expense.toNetworkRequest()
+            val response = httpClient.post("$BASE_URL/expenses") {
+                contentType(ContentType.Application.Json)
+                setBody(request) // Enviamos el DTO serializable
+            }
+
+            if (response.status == HttpStatusCode.OK) {
+                Napier.log("addExpense: API respondió OK. Guardando en DB local.")
+
+                // Actualizar localmente si es necesario
+                syncExpenses()
+            }else {
+                Napier.w("addExpense: La API respondió con un estado no esperado: ${response.status}")
+            }
+        } catch (e: Exception) {
+            Napier.e("addExpense: Error", throwable = e)
         }
     }
 
     override suspend fun editExpense(expense: Expense) {
-        queries.transaction {
-            queries.updateExpense(
-                amount = expense.amount,
-                categoryName = expense.category.name,
-                description = expense.description,
-                id = expense.id
-            )
+        Napier.log("editExpense: id=${expense.id}")
+        try {
+            // Convertimos dominio a DTO
+            val request = expense.toNetworkRequest()
+
+            val response = httpClient.put("$BASE_URL/expenses/${expense.id}") {
+                contentType(ContentType.Application.Json)
+                setBody(request) // Enviamos el DTO
+            }
+
+            if (response.status == HttpStatusCode.OK) {
+                queries.updateExpense(
+                    id = expense.id,
+                    amount = expense.amount,
+                    categoryName = expense.category.name,
+                    description = expense.description
+                )
+                Napier.log("editExpense: OK")
+            }else {
+                Napier.w("editExpense: La API respondió con un estado no esperado: ${response.status}")
+            }
+        } catch (e: Exception) {
+            Napier.e("editExpense: Falló", throwable = e)
         }
     }
 
     override suspend fun deleteExpense(expense: Expense) {
-        queries.deleteExpense(expense.id)
+        try {
+            // 1. Eliminar en API
+            val response = httpClient.delete("$BASE_URL/expenses/${expense.id}")
+
+            if (response.status == HttpStatusCode.OK) {
+                // 2. Eliminar localmente
+                queries.deleteExpense(expense.id)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun getCategories(): List<ExpenseCategory> {

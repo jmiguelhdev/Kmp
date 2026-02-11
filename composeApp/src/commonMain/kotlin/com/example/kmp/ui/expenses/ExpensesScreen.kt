@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -40,24 +42,49 @@ fun ExpensesScreen(
     uiState: ExpensesUiState,
     onExpenseClick: (expense: Expense) -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        stickyHeader {
-            Column(
-                modifier = Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.background
-                    )
-            ) {
-                Header(total = uiState.formattedTotal)
-                AllExpensesHeader()
-            }
+    Box(modifier = Modifier.fillMaxSize()) {
+        // 1. Mostrar Cargando
+        if (uiState.isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.primary
+            )
         }
-        items(uiState.expenses) { expense ->
-            ExpensesItem(expense, onExpenseClick)
+
+        // 2. Mostrar Contenido si no está cargando
+        else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                stickyHeader {
+                    Column(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.background
+                            )
+                    ) {
+                        Header(total = uiState.formattedTotal)
+                        AllExpensesHeader()
+                    }
+                }
+
+                if (uiState.expenses.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillParentMaxHeight(0.5f).fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("No expenses found", color = Color.Gray)
+                        }
+                    }
+                } else {
+                    items(uiState.expenses) { expense ->
+                        ExpensesItem(expense, onExpenseClick)
+                    }
+                }
+            }
         }
     }
 }
