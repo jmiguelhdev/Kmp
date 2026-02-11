@@ -7,6 +7,7 @@ import com.example.kmp.model.Expense
 import com.example.kmp.ui.navigation.AppNavigator
 import com.example.kmp.ui.navigation.ScreenRoutes
 import com.example.kmp.utils.toFormattedCurrency
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,15 +35,22 @@ class ExpensesViewModel(
 
     private fun loadExpenses() {
         viewModelScope.launch {
-            // Sincronizar con API (Backend Ktor)
-            try {
-                repository.syncExpenses()
-            } catch (e: Exception) {
-                // Manejar error de red opcionalmente
+            // 1. Lanzamos un job infinito de sincronización (Polling) cada 10 segundos
+            // En una app pro, aquí usarías WebSockets o Firebase
+            launch {
+                while(true) {
+                    try {
+                        repository.syncExpenses()
+                    } catch (e: Exception) {
+                        Napier.w("Fallo el polling de red")
+                    }
+                    kotlinx.coroutines.delay(10000) // Sincroniza cada 10 seg
+                }
             }
 
-            // Recolectar el Flow de la DB/Repositorio
-            // Al ser suspend, lo llamamos dentro de la corrutina
+            // 2. Escuchamos la DB Local (SQLDelight)
+            // Como syncExpenses inserta en la DB, este collectLatest se disparará
+            // automáticamente cada vez que haya datos nuevos del servidor
             repository.getAllExpenses().collectLatest { expenses ->
                 val totalAmount = expenses.sumOf { it.amount }
                 _uiState.update { currentState ->
