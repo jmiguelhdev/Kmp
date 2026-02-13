@@ -23,10 +23,12 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 
 private const val BASE_URL = "http://192.168.1.18:8080"
+
 class ExpenseRepoImpl(
     private val expenseManager: ExpenseManager,
     database: ExpenseDatabase,
@@ -37,7 +39,6 @@ class ExpenseRepoImpl(
 
 
     override suspend fun getAllExpenses(): Flow<List<Expense>> {
-        // Retornamos el Flow de la base de datos (Single Source of Truth)
         return queries.selectAllExpenses()
             .asFlow()
             .mapToList(Dispatchers.IO)
@@ -46,9 +47,8 @@ class ExpenseRepoImpl(
 
 
     override suspend fun syncExpenses() {
-        Napier.log("syncExpenses: Iniciando...")
+        Napier.log("syncExpenses: Intentando sincronizar...")
         try {
-            // 1. Recibimos una lista de DTOs
             val networkExpenses = httpClient.get("$BASE_URL/expenses")
                 .body<List<ExpenseNetworkResponse>>()
 
@@ -62,13 +62,14 @@ class ExpenseRepoImpl(
                     )
                 }
             }
-            Napier.log("syncExpenses: Éxito")
+            Napier.log("syncExpenses: Sincronización exitosa")
         } catch (e: Exception) {
-            Napier.e("syncExpenses: Error", throwable = e)
+            // Capturamos ConnectionRefused o cualquier error de red
+            Napier.e("syncExpenses: Servidor no alcanzable. Usando datos locales.", throwable = e)
+            // Lanzamos una excepción personalizada si el ViewModel necesita mostrar un mensaje específico
+            throw e
         }
     }
-
-
 
 
     override suspend fun addExpense(expense: Expense) {
@@ -86,7 +87,7 @@ class ExpenseRepoImpl(
 
                 // Actualizar localmente si es necesario
                 syncExpenses()
-            }else {
+            } else {
                 Napier.w("addExpense: La API respondió con un estado no esperado: ${response.status}")
             }
         } catch (e: Exception) {
@@ -113,7 +114,7 @@ class ExpenseRepoImpl(
                     description = expense.description
                 )
                 Napier.log("editExpense: OK")
-            }else {
+            } else {
                 Napier.w("editExpense: La API respondió con un estado no esperado: ${response.status}")
             }
         } catch (e: Exception) {
@@ -122,16 +123,21 @@ class ExpenseRepoImpl(
     }
 
     override suspend fun deleteExpense(expense: Expense) {
+        Napier.log("deleteExpense: id=${expense.id}")
         try {
-            // 1. Eliminar en API
+            // 1. Eliminar en API (Ktor)
             val response = httpClient.delete("$BASE_URL/expenses/${expense.id}")
 
-            if (response.status == HttpStatusCode.OK) {
-                // 2. Eliminar localmente
-                queries.deleteExpense(expense.id)
+            if (response.status == HttpStatusCode.OK || response.status == HttpStatusCode.NotFound) {
+                // 2. Eliminar localmente (SQLDelight)
+                queries.transaction {
+                    queries.deleteExpense(expense.id)
+                }
+                Napier.log("deleteExpense: Eliminado localmente")
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Napier.e("deleteExpense: Falló", throwable = e)
+            throw e // Relanzamos para que el ViewModel pueda manejarlo si quiere
         }
     }
 

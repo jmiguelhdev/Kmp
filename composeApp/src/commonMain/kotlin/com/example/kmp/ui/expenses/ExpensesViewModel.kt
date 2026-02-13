@@ -8,6 +8,7 @@ import com.example.kmp.ui.navigation.AppNavigator
 import com.example.kmp.ui.navigation.ScreenRoutes
 import com.example.kmp.utils.toFormattedCurrency
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +20,8 @@ data class ExpensesUiState(
     val expenses: List<Expense> = emptyList(),
     val total: Double = 0.0,
     val formattedTotal: String = "0.00",
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
 class ExpensesViewModel(
@@ -41,10 +43,13 @@ class ExpensesViewModel(
                 while(true) {
                     try {
                         repository.syncExpenses()
+                        _uiState.update { it.copy(error = null) } // Limpiar error si conecta
                     } catch (e: Exception) {
-                        Napier.w("Fallo el polling de red")
+                        Napier.w("Fallo el polling de red $e")
+                        _uiState.update { it.copy(error = "No connection to server. Working offline.") }
+
                     }
-                    kotlinx.coroutines.delay(10000) // Sincroniza cada 10 seg
+                    delay(10000) // Sincroniza cada 10 seg
                 }
             }
 
@@ -69,6 +74,20 @@ class ExpensesViewModel(
 
     fun onExpenseSelected(id: Long) {
         navigator.navigateTo(ScreenRoutes.ExpenseDetails(id))
+    }
+
+
+    fun deleteExpense(expense: Expense) {
+        viewModelScope.launch {
+            try {
+                // El repositorio ahora solo ejecuta la acción suspend
+                repository.deleteExpense(expense)
+                // No necesitamos actualizar el estado aquí,
+                // el collectLatest de loadExpenses() lo hará solo cuando la DB cambie.
+            } catch (e: Exception) {
+                Napier.e("Error al eliminar gasto", throwable = e)
+            }
+        }
     }
 
 }

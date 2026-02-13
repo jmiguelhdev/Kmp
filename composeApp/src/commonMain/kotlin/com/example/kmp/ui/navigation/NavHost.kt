@@ -59,6 +59,9 @@ fun AppNavHost(
                 uiState = uiState,
                 onExpenseClick = {
                     viewModel.onExpenseSelected(it.id)
+                },
+                onDeleteExpense = {
+                    viewModel.deleteExpense(it)
                 }
             )
         }

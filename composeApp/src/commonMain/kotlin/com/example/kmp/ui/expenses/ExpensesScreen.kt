@@ -15,15 +15,28 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxDefaults
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,55 +53,120 @@ import com.example.kmp.model.Expense
 @Composable
 fun ExpensesScreen(
     uiState: ExpensesUiState,
-    onExpenseClick: (expense: Expense) -> Unit
+    onExpenseClick: (expense: Expense) -> Unit,
+    onDeleteExpense: (expense: Expense) -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        // 1. Mostrar Cargando
-        if (uiState.isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = MaterialTheme.colorScheme.primary
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { message->
+            val result = snackbarHostState.showSnackbar(
+                message = message,
+                actionLabel = "Aceptar"
             )
+            if (result == SnackbarResult.ActionPerformed || result == SnackbarResult.Dismissed) {
+                snackbarHostState.currentSnackbarData?.dismiss()
+            }
         }
+    }
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        modifier = Modifier.fillMaxSize()
+    ) { paddingValues ->
 
-        // 2. Mostrar Contenido si no está cargando
-        else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
             ) {
-                stickyHeader {
-                    Column(
-                        modifier = Modifier
-                            .background(
-                                color = MaterialTheme.colorScheme.background
-                            )
-                    ) {
-                        Header(total = uiState.formattedTotal)
-                        AllExpensesHeader()
-                    }
-                }
+            // 1. Mostrar Cargando
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
-                if (uiState.expenses.isEmpty()) {
-                    item {
-                        Box(
-                            modifier = Modifier.fillParentMaxHeight(0.5f).fillMaxWidth(),
-                            contentAlignment = Alignment.Center
+            // 2. Mostrar Contenido si no está cargando
+            else {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    stickyHeader {
+                        Column(
+                            modifier = Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.background
+                                )
                         ) {
-                            Text("No expenses found", color = Color.Gray)
+                            Header(total = uiState.formattedTotal)
+                            AllExpensesHeader()
                         }
                     }
-                } else {
-                    items(uiState.expenses) { expense ->
-                        ExpensesItem(expense, onExpenseClick)
+
+                    // CORRECCIÓN: Usar !uiState.expenses.isEmpty() o simplemente items()
+                    if (uiState.expenses.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier.fillParentMaxHeight(0.5f).fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("No expenses found", color = Color.Gray)
+                            }
+                        }
+                    } else {
+                        items(
+                            items = uiState.expenses,
+                            key = { it.id } // Requerido para que SwipeToDismiss sepa qué item animar
+                        ) { expense ->
+
+                            val dismissState = rememberSwipeToDismissBoxState(
+                                SwipeToDismissBoxValue.Settled,
+                                SwipeToDismissBoxDefaults.positionalThreshold
+                            )
+                            // 2. Usamos LaunchedEffect para reaccionar al cambio de estado (Modern Way)
+                            LaunchedEffect(dismissState.currentValue) {
+                                if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+                                    onDeleteExpense(expense)
+                                    // Opcional: dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+                                    // si quieres que el item regrese si no se borra instantáneamente
+                                }
+                            }
+
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                enableDismissFromStartToEnd = false, // Solo de derecha a izquierda
+                                backgroundContent = { SwipeBackground(dismissState) },
+                                content = { ExpensesItem(expense, onExpenseClick) }
+                            )
+                        }
                     }
                 }
             }
         }
     }
 }
+@Composable
+fun SwipeBackground(dismissState: SwipeToDismissBoxState) {
+    val color = if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+        Color.Red.copy(alpha = 0.8f)
+    } else Color.Transparent
 
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color, RoundedCornerShape(30))
+            .padding(horizontal = 20.dp),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Image(
+            imageVector = Icons.Default.Delete,
+            contentDescription = "Delete",
+            colorFilter = ColorFilter.tint(Color.White)
+        )
+    }
+}
 
 
 @Preview
@@ -99,7 +177,8 @@ fun ExpenseScreenPreview() {
             expenses = ExpenseManager().initialFakeExpenses(),
             total = 100.0
     ),
-        onExpenseClick = {}
+        onExpenseClick = {},
+        onDeleteExpense = {}
     )
 }
 
